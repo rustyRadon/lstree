@@ -1,27 +1,24 @@
 mod args;
+mod scanner;
 mod validator;
-mod scan_dir;
 
 use clap::Parser;
 use std::path::PathBuf;
-
-use args::Args;
-use validator::validate_path;
-use scan_dir::print_tree;
+use std::process;
 
 fn main() {
-    let args = Args::parse();
+    let args = args::Args::parse();
 
-    let path = args
-        .path
-        .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from("."));
+    // Clone so args can still be borrowed later
+    let path: PathBuf = args.path.clone();
 
-    if let Err(err) = validate_path(&path) {
-        eprintln!("Error: {}", err);
-        std::process::exit(1);
+    if let Err(e) = validator::validate_path(&path) {
+        eprintln!("Error: {}", e);
+        process::exit(1);
     }
 
-    println!("{}", path.display());
-    print_tree(&path, "", args.only_file, 0, args.depth);
+    if let Err(e) = scanner::scan_directory(&path, &args) {
+        eprintln!("Error scanning directory: {}", e);
+        process::exit(1);
+    }
 }
