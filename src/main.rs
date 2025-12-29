@@ -9,7 +9,6 @@ use std::process;
 fn main() {
     let args = args::Args::parse();
 
-    // Clone so args can still be borrowed later
     let path: PathBuf = args.path.clone();
 
     if let Err(e) = validator::validate_path(&path) {
